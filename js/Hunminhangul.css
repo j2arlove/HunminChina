@@ -1,0 +1,113 @@
+@font-face {
+  font-family: 'NanumBarunGothicOTF YetHangul';
+  src: url("NanumBarunGothicOTF-YetHangul.otf") format("otf");
+}
+
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans+KR&subset=korean');
+
+body {
+  font-family: 'NanumBarunGothicOTF YetHangul', 'Noto Sans KR', sans-serif;
+  font-size: 1rem;
+}
+
+div.title {
+  color:#3DB7CC;
+  font-size: 1.5rem;
+  font-weight:bold; 
+  line-height:1.5rem; 
+  padding-left: 1rem;
+  margin-top: 2rem;
+}
+
+.typed-characters {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 1.05rem;
+  width: 400px;
+  border: 2px solid #3DB7CC;
+  margin: 1rem;
+  padding: 0.75rem;
+}
+
+.intonation-0 {
+  min-width: 0.5rem;
+}
+
+.intonation-1 {
+  min-width: 0.5rem;
+  color: black;
+  border-radius: 0.5rem;
+  font-weight:bold; 
+}
+
+.intonation-2 {
+  min-width: 0.5rem;
+  color: green;
+  border-radius: 0.5rem;
+  font-weight:bold; 
+}
+
+.intonation-3 {
+  min-width: 0.5rem;
+  color: yellow;
+  border-radius: 0.5rem;
+  font-weight:bold; 
+}
+
+.intonation-4 {
+  min-width: 0.5rem;
+  color: red;
+  border-radius: 0.5rem;
+  font-weight:bold; 
+}
+
+.typing-character {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0.5rem;
+  border-right: 1px solid black;
+}
+
+/* http://www.ilikepixels.co.uk/drop/bubbler/*/
+.bubble 
+{
+position: relative;
+width: 405px;
+height: 25px;
+padding: 5px;
+margin-left: 15px;
+margin-bottom: 15px;
+background: #CCCCCC;
+-webkit-border-radius: 5px;
+-moz-border-radius: 5px;
+border-radius: 5px;
+border: #7F7F7F solid 1px;
+}
+
+.bubble:after 
+{
+content: '';
+position: absolute;
+border-style: solid;
+border-width: 5px 10px 5px 0;
+border-color: transparent #CCCCCC;
+display: block;
+width: 0;
+z-index: 1;
+left: -9px;
+top: 7px;
+}
+
+.bubble:before 
+{
+content: '';
+position: absolute;
+border-style: solid;
+border-width: 6px 11px 6px 0;
+border-color: transparent #7F7F7F;
+display: block;
+width: 0;
+z-index: 0;
+left: -12px;
+top: 6px;
+}

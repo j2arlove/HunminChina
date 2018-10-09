@@ -1,1 +1,4 @@
 .DS_Store
+api/python-env/
+api/__pycache__
+.vscode

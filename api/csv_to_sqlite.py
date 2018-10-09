@@ -2,7 +2,8 @@ import csv, sqlite3
 
 con = sqlite3.connect("hunmin.db")
 cur = con.cursor()
-cur.execute("CREATE TABLE hunmin (hunmin, simplified, traditional, intonation, priority, user);") # use your column names here
+cur.execute("DROP TABLE hunmin;")
+cur.execute("CREATE TABLE hunmin (hunmin, hunminWithoutSpace, simplified, traditional, intonation, priority, user);")
 
 with open('hunmin.csv','r') as fin: # `with` statement available in 2.5+
     # csv.DictReader uses first line in file for column headings by default
@@ -10,10 +11,11 @@ with open('hunmin.csv','r') as fin: # `with` statement available in 2.5+
     next(dr)
     for line in dr:
         cur.execute("""
-        INSERT INTO hunmin (hunmin, simplified, traditional, intonation, priority, user)
-        VALUES ("%s", "%s", "%s", "%s", "%s", 0)
+        INSERT INTO hunmin (hunmin, hunminWithoutSpace, simplified, traditional, intonation, priority, user)
+        VALUES ("%s", "%s", "%s", "%s", "%s", "%s", 0)
         """ % (
             line[0],
+            line[0].replace(" ", ""),
             line[1],
             line[2],
             line[3],

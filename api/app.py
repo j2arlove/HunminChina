@@ -18,9 +18,23 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-@app.route('/find/<string:text>')
-def find(text):
+@app.route('/exact/<string:text>')
+def exact(text):
     cur = get_db().cursor()
     rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE hunmin = "%s"' % text)]
+
+    return jsonify(rows)
+
+@app.route('/search/<string:text>')
+def search(text):
+    cur = get_db().cursor()
+    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE hunminWithoutSpace = "%s"' % text)]
+
+    return jsonify(rows)
+
+@app.route('/search/<string:text>/<string:intonation>')
+def searchIntonation(text, intonation):
+    cur = get_db().cursor()
+    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE hunminWithoutSpace = "%s" and intonation = "%s"' % (text, intonation))]
 
     return jsonify(rows)

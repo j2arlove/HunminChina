@@ -3,17 +3,19 @@ import csv, sqlite3, hgtk
 con = sqlite3.connect("hunmin.db")
 cur = con.cursor()
 cur.execute("DROP TABLE hunmin;")
-cur.execute("CREATE TABLE hunmin (hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user);")
+cur.execute("CREATE TABLE hunmin (id, hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user);")
 
 with open('hunmin.csv','r') as fin: # `with` statement available in 2.5+
     # csv.DictReader uses first line in file for column headings by default
     dr = csv.reader(fin) # comma is default delimiter
     next(dr)
+    count = 0
     for line in dr:
         cur.execute("""
-        INSERT INTO hunmin (hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user)
-        VALUES ("%s", "%s", "%s", "%s", "%s", "%s", "%s", 0)
+        INSERT INTO hunmin (id, hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user)
+        VALUES ("%d", "%s", "%s", "%s", "%s", "%s", "%s", "%s", 0)
         """ % (
+            count,
             line[0],
             line[0].replace(" ", ""),
             hgtk.text.decompose(line[0].replace(" ", "")).replace('ᴥ', ''),
@@ -22,6 +24,7 @@ with open('hunmin.csv','r') as fin: # `with` statement available in 2.5+
             line[3],
             line[4]
         ))
+        count += 1
     #to_db = [(i['col1'], i['col2']) for i in dr]
 
 con.commit()

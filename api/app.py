@@ -18,23 +18,16 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-@app.route('/exact/<string:text>')
-def exact(text):
+@app.route('/search/jamo/<string:text>')
+def searchJamo(text):
     cur = get_db().cursor()
-    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE hunmin = "%s"' % text)]
+    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE jamo LIKE "{0}%"'.format(text))]
 
     return jsonify(rows)
 
-@app.route('/search/<string:text>')
-def search(text):
+@app.route('/search/jamo_intonation/<string:text>/<string:intonation>')
+def searchJamoIntonation(text, intonation):
     cur = get_db().cursor()
-    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE hunminWithoutSpace = "%s"' % text)]
-
-    return jsonify(rows)
-
-@app.route('/search/<string:text>/<string:intonation>')
-def searchIntonation(text, intonation):
-    cur = get_db().cursor()
-    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE hunminWithoutSpace = "%s" and intonation = "%s"' % (text, intonation))]
+    rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE jamo LIKE "{0}%" and intonation LIKE "{1}%"'.format(text, intonation))]
 
     return jsonify(rows)

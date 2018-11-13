@@ -1,5 +1,8 @@
 import React, { Component } from "react";
+import axios from "axios";
+
 import "./App.css";
+import Candidates from "./Candidates";
 import combineOldHangul from "./constants/combineOldHangul";
 import keyCode from "./constants/keyCode";
 import keyCodeWithShift from "./constants/keyCodeWithShift";
@@ -19,7 +22,8 @@ class App extends Component {
       keys: [], // 글쇠
       states: [], // state 히스토리
       combinedHangul: ""
-    }
+    },
+    jamoResponse: []
   };
 
   componentDidMount() {
@@ -128,13 +132,45 @@ class App extends Component {
     this.setState({ state: nextState });
   };
 
+  typedJamos = () => {
+    const allCharacters = [
+      ...this.state.typedCharacters,
+      this.state.currentTypingCharacters
+    ];
+
+    const keys = allCharacters.map(character => character.keys);
+    let jamos = [];
+    keys.forEach(key => {
+      jamos = [...jamos, ...key];
+    });
+
+    return jamos;
+  };
+
+  searchByJamo = () => {
+    const searchParam = this.typedJamos().join("");
+    console.log("searchParam", searchParam);
+
+    axios
+      .get(`http://localhost:5000/search/jamo/${searchParam}`)
+      .then(response => {
+        console.log(response.data);
+        this.setState({
+          jamoResponse: response.data
+        });
+      });
+  };
+
   addToCurrentCharacter = key => {
     const currentTypingCharacters = { ...this.state.currentTypingCharacters };
 
     currentTypingCharacters.keys.push(key);
     currentTypingCharacters.states.push(this.state.state);
 
-    this.setState({ currentTypingCharacters });
+    this.setState({ currentTypingCharacters }, () => {
+      this.searchByJamo();
+      this.combineHangul(this.state.currentTypingCharacters);
+    });
   };
 
   backspace = () => {
@@ -144,16 +180,25 @@ class App extends Component {
         // 이미 입력된 글자가 있을때
         const typedCharacters = [...this.state.typedCharacters];
         typedCharacters.pop();
-        this.setState({ typedCharacters }); // 한 자를 지움
+        this.setState({ typedCharacters }, () => {
+          this.searchByJamo();
+          this.combineHangul(this.state.currentTypingCharacters);
+        }); // 한 자를 지움
       }
     } else {
       const currentTypingCharacters = { ...this.state.currentTypingCharacters };
       currentTypingCharacters.keys.pop(); // 한 글쇠를 지움
       const prevState = currentTypingCharacters.states.pop(); // 한 state를 지움
-      this.setState({
-        currentTypingCharacters,
-        state: prevState
-      }); // 이전 state로 되돌림
+      this.setState(
+        {
+          currentTypingCharacters,
+          state: prevState
+        },
+        () => {
+          this.searchByJamo();
+          this.combineHangul(this.state.currentTypingCharacters);
+        }
+      ); // 이전 state로 되돌림
     }
   };
 
@@ -450,13 +495,20 @@ class App extends Component {
   };
 
   render() {
-    const typedCharacters = this.state.typedCharacters.map(character => {
-      return (
-        <span className={`intonation-${character.intonation}`}>
-          {this.translateToUnicode(character.combinedHangul)}
-        </span>
-      );
-    });
+    const typedCharacters = this.state.typedCharacters.map(
+      (character, index) => {
+        return (
+          <span
+            className={`intonation-${character.intonation}`}
+            key={`${this.translateToUnicode(
+              character.combinedHangul
+            )}-${index}`}
+          >
+            {this.translateToUnicode(character.combinedHangul)}
+          </span>
+        );
+      }
+    );
 
     const currentCharacter = (
       <span
@@ -464,7 +516,9 @@ class App extends Component {
           this.state.currentTypingCharacters.intonation
         }`}
       >
-        {this.state.currentTypingCharacters.keys.join("")}
+        {this.translateToUnicode(
+          this.state.currentTypingCharacters.combinedHangul
+        )}
       </span>
     );
 
@@ -475,6 +529,8 @@ class App extends Component {
           <div className="typing-character">{currentCharacter}</div>
         </div>
         <div className="status">State: {this.state.state}</div>
+        <div className="debug">TypedJamos: {this.typedJamos()}</div>
+        <Candidates candidates={this.state.jamoResponse} />
       </div>
     );
   }

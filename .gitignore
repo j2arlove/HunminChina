@@ -2,3 +2,4 @@
 api/python-env/
 api/__pycache__
 .vscode
+hunmin/node_modules/

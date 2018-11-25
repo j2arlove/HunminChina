@@ -3,6 +3,7 @@ import axios from "axios";
 
 import "./App.css";
 import Candidates from "./Candidates";
+import Sentences from "./Sentences";
 import combineOldHangul from "./constants/combineOldHangul";
 import keyCode from "./constants/keyCode";
 import keyCodeWithShift from "./constants/keyCodeWithShift";
@@ -16,6 +17,8 @@ class App extends Component {
     isShiftPressed: false,
     state: 0,
     typedCharacters: [], // 지금까지 입력한 문자들
+    typingSentence: "",
+    typedSentences: [],
     currentTypingCharacters: {
       // 현재 입력중인 문자
       intonation: 0, // 성조
@@ -23,7 +26,9 @@ class App extends Component {
       states: [], // state 히스토리
       combinedHangul: ""
     },
-    jamoResponse: []
+    jamoResponse: [],
+    intonations: [],
+    debug: false
   };
 
   componentDidMount() {
@@ -54,15 +59,15 @@ class App extends Component {
       this.setState({ isShiftPressed: true });
     } else if (pressedKey === "backspace") {
       this.backspace();
-    } else if (
-      this.includes(
-        ["up arrow", "left arrow", "right arrow", "down arrow"],
-        pressedKey
-      )
-    ) {
-      const currentTypingCharacters = { ...this.state.currentTypingCharacters };
-      currentTypingCharacters.intonation = keyToIntonation[pressedKey];
-      this.setState({ currentTypingCharacters });
+    } else if (pressedKey === "enter") {
+      this.enter();
+    } else if (pressedKey === "ctrl") {
+      // do nothing
+    } else if (this.includes(["0", "1", "2", "3", "4"], pressedKey)) {
+      const intonations = [...this.state.intonations, pressedKey];
+      this.setState({ intonations: intonations }, () => {
+        this.searchByJamo();
+      });
     } else if (pressedKey === "enter") {
       this.enter();
     } else if (pressedKey !== null) {
@@ -119,15 +124,6 @@ class App extends Component {
     return unicodeString;
   };
 
-  enter = () => {
-    this.finishCharacter();
-    // chat_contents += "<div class='bubble'>{0}</div>".format(flushOutput());
-    // $(".chat").html(chat_contents);
-    // $(".typed-characters").html("");
-    // env.typedCharacters.splice(0, env.typedCharacters.length);
-    this.transit(0);
-  };
-
   transit = nextState => {
     this.setState({ state: nextState });
   };
@@ -149,16 +145,21 @@ class App extends Component {
 
   searchByJamo = () => {
     const searchParam = this.typedJamos().join("");
-    console.log("searchParam", searchParam);
+    if (!searchParam || searchParam.length === 0) return;
 
-    axios
-      .get(`http://localhost:5000/search/jamo/${searchParam}`)
-      .then(response => {
-        console.log(response.data);
-        this.setState({
-          jamoResponse: response.data
-        });
+    const url =
+      this.state.intonations.length === 0
+        ? `http://localhost:5000/search/jamo/${searchParam}`
+        : `http://localhost:5000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+            ","
+          )}`;
+
+    axios.get(url).then(response => {
+      console.log(response.data);
+      this.setState({
+        jamoResponse: response.data
       });
+    });
   };
 
   addToCurrentCharacter = key => {
@@ -184,6 +185,12 @@ class App extends Component {
           this.searchByJamo();
           this.combineHangul(this.state.currentTypingCharacters);
         }); // 한 자를 지움
+      } else if (this.state.typingSentence.length > 0) {
+        const typingSentence = this.state.typingSentence.substring(
+          0,
+          this.state.typingSentence.length - 1
+        );
+        this.setState({ typingSentence: typingSentence });
       }
     } else {
       const currentTypingCharacters = { ...this.state.currentTypingCharacters };
@@ -202,6 +209,25 @@ class App extends Component {
     }
   };
 
+  enter = () => {
+    this.setState({
+      isControlPressed: false,
+      isShiftPressed: false,
+      state: 0,
+      typedCharacters: [],
+      currentTypingCharacters: {
+        intonation: 0,
+        keys: [],
+        states: [],
+        combinedHangul: ""
+      },
+      jamoResponse: [],
+      intonations: [],
+      typedSentences: [...this.state.typedSentences, this.state.typingSentence],
+      typingSentence: ""
+    });
+  };
+
   combineHangul = currentCharacter => {
     currentCharacter.combinedHangul = currentCharacter.keys.join("");
     for (let combination of Object.keys(combineOldHangul)) {
@@ -210,6 +236,9 @@ class App extends Component {
         combineOldHangul[combination]
       );
     }
+    this.setState({
+      currentTypingCharacters: this.state.currentTypingCharacters
+    });
   };
 
   finishCharacter = () => {
@@ -494,6 +523,26 @@ class App extends Component {
     this.setState({ states });
   };
 
+  finishSearch = word => {
+    const typingSentence = this.state.typingSentence + word;
+
+    this.setState({
+      isControlPressed: false,
+      isShiftPressed: false,
+      state: 0,
+      typedCharacters: [],
+      currentTypingCharacters: {
+        intonation: 0,
+        keys: [],
+        states: [],
+        combinedHangul: ""
+      },
+      jamoResponse: [],
+      intonations: [],
+      typingSentence: typingSentence
+    });
+  };
+
   render() {
     const typedCharacters = this.state.typedCharacters.map(
       (character, index) => {
@@ -525,12 +574,44 @@ class App extends Component {
     return (
       <div className="App">
         <div className="typed-characters">
+          {this.state.typingSentence}
           {typedCharacters}
           <div className="typing-character">{currentCharacter}</div>
         </div>
-        <div className="status">State: {this.state.state}</div>
-        <div className="debug">TypedJamos: {this.typedJamos()}</div>
-        <Candidates candidates={this.state.jamoResponse} />
+        <div>
+          성조: {this.state.intonations.join(", ")}
+          <button
+            onClick={() => {
+              this.setState({ intonations: [] }, () => {
+                this.searchByJamo();
+              });
+            }}
+          >
+            성조 지우기
+          </button>
+        </div>
+        <Candidates
+          candidates={this.state.jamoResponse}
+          finishSearch={this.finishSearch}
+        />
+        <Sentences typedSentences={this.state.typedSentences} />
+        <label>
+          <input
+            type="checkbox"
+            checked={this.state.debug}
+            value={this.state.debug}
+            onChange={v => {
+              this.setState({ debug: v.target.checked });
+            }}
+          />
+          debug info
+        </label>
+        {this.state.debug ? (
+          <React.Fragment>
+            <div className="status">State: {this.state.state}</div>
+            <div className="debug">TypedJamos: {this.typedJamos()}</div>
+          </React.Fragment>
+        ) : null}
       </div>
     );
   }

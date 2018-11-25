@@ -1,0 +1,44 @@
+.candidates {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.candidate {
+  display: flex;
+  padding: 0.5rem;
+  margin: 0.25rem;
+  border: 1px solid grey;
+  cursor: pointer;
+}
+
+.candidate:hover {
+  background-color: lightgray;
+}
+
+.candidate__hunmin {
+}
+
+.candidate__chinese {
+  margin-left: 0.25rem;
+  font-weight: bold;
+}
+
+.intonation--0 {
+  color: grey;
+}
+
+.intonation--1 {
+  color: black;
+}
+
+.intonation--2 {
+  color: green;
+}
+
+.intonation--3 {
+  color: #ffc300;
+}
+
+.intonation--4 {
+  color: red;
+}

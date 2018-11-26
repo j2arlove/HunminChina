@@ -149,8 +149,8 @@ class App extends Component {
 
     const url =
       this.state.intonations.length === 0
-        ? `http://localhost:5000/search/jamo/${searchParam}`
-        : `http://localhost:5000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+        ? `http://54.180.81.102:50000/search/jamo/${searchParam}`
+        : `http://54.180.81.102:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
             ","
           )}`;
 

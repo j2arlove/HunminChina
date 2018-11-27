@@ -145,12 +145,15 @@ class App extends Component {
 
   searchByJamo = () => {
     const searchParam = this.typedJamos().join("");
-    if (!searchParam || searchParam.length === 0) return;
+    if (!searchParam || searchParam.length === 1) return;
+
+    const serverIp = '54.180.81.102';
+    const localIp = 'localhost';
 
     const url =
       this.state.intonations.length === 0
-        ? `http://54.180.81.102:50000/search/jamo/${searchParam}`
-        : `http://54.180.81.102:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+        ? `http://${localIp}:50000/search/jamo/${searchParam}`
+        : `http://${localIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
             ","
           )}`;
 
@@ -303,7 +306,7 @@ class App extends Component {
     };
 
     states[1] = key => {
-      if (this.includes("ㅇ", key)) {
+      if (this.includes("`", key)) {
         this.addToCurrentCharacter(key);
         this.transit(3);
       } else if (this.includes("ㅏㅑㅓㅕㅛㅠㅣㅐㅔㅒㅖ", key)) {
@@ -375,7 +378,7 @@ class App extends Component {
     };
 
     states[4] = key => {
-      if (this.includes("ㅎ", key)) {
+      if (this.includes("`", key)) {
         this.addToCurrentCharacter(key);
         this.transit(3);
       } else if (this.includes("ㅏㅑㅓㅕㅛㅠㅣㅐㅔㅒㅖ", key)) {
@@ -579,6 +582,7 @@ class App extends Component {
           <div className="typing-character">{currentCharacter}</div>
         </div>
         <div>
+          {/*
           성조: {this.state.intonations.join(", ")}
           <button
             onClick={() => {
@@ -589,6 +593,7 @@ class App extends Component {
           >
             성조 지우기
           </button>
+          */}
         </div>
         <Candidates
           candidates={this.state.jamoResponse}

@@ -5,7 +5,7 @@ cur = con.cursor()
 cur.execute("DROP TABLE hunmin;")
 cur.execute("CREATE TABLE hunmin (id, hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user);")
 
-with open('hunmin.csv','r') as fin: # `with` statement available in 2.5+
+with open('hunmin.csv','r',encoding='utf-8') as fin: # `with` statement available in 2.5+
     # csv.DictReader uses first line in file for column headings by default
     dr = csv.reader(fin) # comma is default delimiter
     next(dr)

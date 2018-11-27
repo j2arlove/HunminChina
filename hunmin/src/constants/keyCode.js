@@ -29,10 +29,10 @@ export default {
   16: "shift",
   8: "backspace",
   13: "enter",
-  37: "left arrow",
+/*  37: "left arrow",
   38: "up arrow",
   39: "right arrow",
-  40: "down arrow",
+  40: "down arrow",*/
   188: ",",
   190: ".",
   191: "/",
@@ -52,6 +52,7 @@ export default {
   192: "`",
   219: "[",
   221: "]",
-  186: ";"
-  //  222: "'"
+  186: ";",
+  222: "'",
+  220: "￦"
 };

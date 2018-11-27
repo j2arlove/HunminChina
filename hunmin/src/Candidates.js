@@ -69,8 +69,8 @@ class Candidates extends Component {
 
     return (
       <div className="candidates-wrapper">
-        <div className="candidates">{candidates}</div>
         <div className="candidates-option">{renderModeSelector}</div>
+        <div className="candidates">{candidates}</div>
       </div>
     );
   }

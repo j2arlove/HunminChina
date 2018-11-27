@@ -152,8 +152,8 @@ class App extends Component {
 
     const url =
       this.state.intonations.length === 0
-        ? `http://${localIp}:50000/search/jamo/${searchParam}`
-        : `http://${localIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+        ? `http://${serverIp}:50000/search/jamo/${searchParam}`
+        : `http://${serverIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
             ","
           )}`;
 
@@ -576,6 +576,7 @@ class App extends Component {
 
     return (
       <div className="App">
+        <div class="title">중국어 입력을 위한 훈민병음 입력기</div> 
         <div className="typed-characters">
           {this.state.typingSentence}
           {typedCharacters}
@@ -599,6 +600,7 @@ class App extends Component {
           candidates={this.state.jamoResponse}
           finishSearch={this.finishSearch}
         />
+        <br/>
         <Sentences typedSentences={this.state.typedSentences} />
         <label>
           <input

@@ -10,7 +10,7 @@
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
-  border: #7f7f7f solid 1px;
+  border: #7f7f7f solid 1.5px;
 }
 
 .bubble:after {

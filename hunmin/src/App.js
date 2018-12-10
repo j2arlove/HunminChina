@@ -7,7 +7,7 @@ import Sentences from "./Sentences";
 import combineOldHangul from "./constants/combineOldHangul";
 import keyCode from "./constants/keyCode";
 import keyCodeWithShift from "./constants/keyCodeWithShift";
-import keyToIntonation from "./constants/keyToIntonation";
+//import keyToIntonation from "./constants/keyToIntonation";
 import nonUnicodeToUnicode from "./constants/nonUnicodeToUnicode";
 import specialCharacters from "./constants/specialCharacters";
 
@@ -61,15 +61,13 @@ class App extends Component {
       this.backspace();
     } else if (pressedKey === "enter") {
       this.enter();
-    } else if (pressedKey === "ctrl") {
-      // do nothing
+    } else if (pressedKey === "space bar") {
+      this.searchByHunmin();
     } else if (this.includes(["0", "1", "2", "3", "4"], pressedKey)) {
       const intonations = [...this.state.intonations, pressedKey];
       this.setState({ intonations: intonations }, () => {
         this.searchByJamo();
       });
-    } else if (pressedKey === "enter") {
-      this.enter();
     } else if (pressedKey !== null) {
       this.state.states[this.state.state](pressedKey);
     }
@@ -145,18 +143,42 @@ class App extends Component {
 
   searchByJamo = () => {
     const searchParam = this.typedJamos().join("");
-    if (!searchParam || searchParam.length === 1) return;
+
+    if (!searchParam || searchParam.length <= 1) return;
+
+    const serverIp = '54.180.81.102';
+    const localIp = 'localhost';
+
+    const url = 
+      this.state.intonations.length === 0
+        ? `http://${localIp}:50000/search/jamo/${searchParam}`
+        : `http://${localIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+            ","
+          )}`;
+    
+    axios.get(url).then(response => {
+      console.log(response.data);
+      this.setState({
+        jamoResponse: response.data
+      });
+    });
+  };
+
+  searchByHunmin = () => {
+    const searchParam = this.typedJamos().join("");
+
+    if (!searchParam || searchParam.length <= 1) return;
 
     const serverIp = '54.180.81.102';
     const localIp = 'localhost';
 
     const url =
       this.state.intonations.length === 0
-        ? `http://${serverIp}:50000/search/jamo/${searchParam}`
-        : `http://${serverIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+        ? `http://${localIp}:50000/search/hunmin/${searchParam}`
+        : `http://${localIp}:50000/search/hunmin_intonation/${searchParam}/${this.state.intonations.join(
             ","
           )}`;
-
+    
     axios.get(url).then(response => {
       console.log(response.data);
       this.setState({
@@ -179,6 +201,9 @@ class App extends Component {
 
   backspace = () => {
     if (this.state.currentTypingCharacters.keys.length === 0) {
+      this.setState({
+        jamoResponse: []
+      });
       // 현재 입력중인 글자가 없을때
       if (this.state.typedCharacters.length > 0) {
         // 이미 입력된 글자가 있을때
@@ -202,6 +227,7 @@ class App extends Component {
       this.setState(
         {
           currentTypingCharacters,
+          intonations: [], //성조 입력 지움
           state: prevState
         },
         () => {
@@ -576,14 +602,14 @@ class App extends Component {
 
     return (
       <div className="App">
-        <div class="title">중국어 입력을 위한 훈민병음 입력기</div> 
+        <div className="title">중국어 입력을 위한 훈민병음 입력기</div> 
         <div className="typed-characters">
           {this.state.typingSentence}
           {typedCharacters}
           <div className="typing-character">{currentCharacter}</div>
         </div>
         <div>
-          {/*
+          {/*}
           성조: {this.state.intonations.join(", ")}
           <button
             onClick={() => {
@@ -602,6 +628,7 @@ class App extends Component {
         />
         <br/>
         <Sentences typedSentences={this.state.typedSentences} />
+        {/* 디버그 정보
         <label>
           <input
             type="checkbox"
@@ -618,7 +645,7 @@ class App extends Component {
             <div className="status">State: {this.state.state}</div>
             <div className="debug">TypedJamos: {this.typedJamos()}</div>
           </React.Fragment>
-        ) : null}
+        ) : null} */}
       </div>
     );
   }

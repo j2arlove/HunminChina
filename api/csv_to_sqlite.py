@@ -3,7 +3,7 @@ import csv, sqlite3, hgtk
 con = sqlite3.connect("hunmin.db")
 cur = con.cursor()
 cur.execute("DROP TABLE hunmin;")
-cur.execute("CREATE TABLE hunmin (id, hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user);")
+cur.execute("CREATE TABLE hunmin (id, hunmin, hunminWithoutSpace, jamo, chosung, simplified, traditional, intonation, priority, user);")
 
 with open('hunmin.csv','r',encoding='utf-8') as fin: # `with` statement available in 2.5+
     # csv.DictReader uses first line in file for column headings by default
@@ -12,13 +12,14 @@ with open('hunmin.csv','r',encoding='utf-8') as fin: # `with` statement availabl
     count = 0
     for line in dr:
         cur.execute("""
-        INSERT INTO hunmin (id, hunmin, hunminWithoutSpace, jamo, simplified, traditional, intonation, priority, user)
-        VALUES ("%d", "%s", "%s", "%s", "%s", "%s", "%s", "%s", 0)
+        INSERT INTO hunmin (id, hunmin, hunminWithoutSpace, jamo, chosung, simplified, traditional, intonation, priority, user)
+        VALUES ("%d", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", 0)
         """ % (
             count,
             line[0],
             line[0].replace(" ", ""),
             hgtk.text.decompose(line[0].replace(" ", "")).replace('ᴥ', ''),
+			''.join([jamo[0] for jamo in hgtk.text.decompose(line[0].replace(" ", "")).split('ᴥ') if len(jamo) > 0]),
             line[1],
             line[2],
             line[3],

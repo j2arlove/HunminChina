@@ -29,6 +29,7 @@ export default {
   16: "shift",
   8: "backspace",
   13: "enter",
+  27: "esc",  
   32: "space bar",
   37: "left arrow",
   38: "up arrow",

@@ -7,9 +7,10 @@ import Sentences from "./Sentences";
 import combineOldHangul from "./constants/combineOldHangul";
 import keyCode from "./constants/keyCode";
 import keyCodeWithShift from "./constants/keyCodeWithShift";
-//import keyToIntonation from "./constants/keyToIntonation";
 import nonUnicodeToUnicode from "./constants/nonUnicodeToUnicode";
 import specialCharacters from "./constants/specialCharacters";
+
+window.document.title = "훈민병음 입력기";
 
 class App extends Component {
   state = {
@@ -26,11 +27,14 @@ class App extends Component {
       states: [], // state 히스토리
       combinedHangul: ""
     },
+    requestOffset: 0,
+    requestCount: 10,
     jamoResponse: [],
+    responseCount: 0,
     intonations: [],
     debug: false
   };
-
+ 
   componentDidMount() {
     document.onkeydown = this.onKeyDown;
     document.onkeyup = this.onKeyUp;
@@ -68,6 +72,8 @@ class App extends Component {
       this.setState({ intonations: intonations }, () => {
         this.searchByJamo();
       });
+    } else if (pressedKey === "esc") {
+      this.finishCharacter(); //화살표키 살릴 방법 있나요??
     } else if (pressedKey !== null) {
       this.state.states[this.state.state](pressedKey);
     }
@@ -147,19 +153,19 @@ class App extends Component {
     if (!searchParam || searchParam.length <= 1) return;
 
     const serverIp = '54.180.81.102';
-    const localIp = 'localhost';
+    //const localIp = 'localhost';
 
     const url = 
       this.state.intonations.length === 0
-        ? `http://${localIp}:50000/search/jamo/${searchParam}`
-        : `http://${localIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
+        ? `http://${serverIp}:50000/search/jamo/${searchParam}/${this.state.requestOffset}/${this.state.requestCount}`
+        : `http://${serverIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
             ","
-          )}`;
+          )}/${this.state.requestOffset}/${this.state.requestCount}`;
     
     axios.get(url).then(response => {
-      console.log(response.data);
       this.setState({
-        jamoResponse: response.data
+        jamoResponse: response.data.candidates,
+        responseCount: response.data.count,
       });
     });
   };
@@ -170,19 +176,14 @@ class App extends Component {
     if (!searchParam || searchParam.length <= 1) return;
 
     const serverIp = '54.180.81.102';
-    const localIp = 'localhost';
+    //const localIp = 'localhost';
 
-    const url =
-      this.state.intonations.length === 0
-        ? `http://${localIp}:50000/search/hunmin/${searchParam}`
-        : `http://${localIp}:50000/search/hunmin_intonation/${searchParam}/${this.state.intonations.join(
-            ","
-          )}`;
-    
+    const url = `http://${serverIp}:50000/search/hunmin/${searchParam}`;
+        
     axios.get(url).then(response => {
       console.log(response.data);
       this.setState({
-        jamoResponse: response.data
+        jamoResponse: response.data.candidates
       });
     });
   };
@@ -250,7 +251,10 @@ class App extends Component {
         states: [],
         combinedHangul: ""
       },
+      requestOffset: 0,
+      requestCount: 10,
       jamoResponse: [],
+      responseCount: 0,
       intonations: [],
       typedSentences: [...this.state.typedSentences, this.state.typingSentence],
       typingSentence: ""
@@ -566,7 +570,10 @@ class App extends Component {
         states: [],
         combinedHangul: ""
       },
+      requestOffset: 0,
+      requestCount: 10,
       jamoResponse: [],
+      responseCount: 0,
       intonations: [],
       typingSentence: typingSentence
     });
@@ -608,8 +615,8 @@ class App extends Component {
           {typedCharacters}
           <div className="typing-character">{currentCharacter}</div>
         </div>
+        {/*
         <div>
-          {/*}
           성조: {this.state.intonations.join(", ")}
           <button
             onClick={() => {
@@ -620,15 +627,48 @@ class App extends Component {
           >
             성조 지우기
           </button>
-          */}
         </div>
+          */}
         <Candidates
           candidates={this.state.jamoResponse}
           finishSearch={this.finishSearch}
         />
+        <label>
+          <button
+            disabled={this.state.requestOffset === 0 || this.state.responseCount === 0}
+            onClick={() => {
+              this.setState({
+                requestOffset: this.state.requestOffset >= this.state.requestCount ? this.state.requestOffset - this.state.requestCount : 0,
+              }, () => {
+                this.searchByJamo();
+              });
+            }}>
+            ◀
+          </button>
+          {this.state.responseCount > 0 ? (
+            <React.Fragment>
+              &nbsp;
+              {Math.floor(this.state.requestOffset / this.state.requestCount) + 1}
+              /
+              {Math.ceil(this.state.responseCount / this.state.requestCount)}
+              &nbsp;
+            </React.Fragment>
+          ) : null}          
+          <button
+            disabled={this.state.requestOffset >= this.state.responseCount - this.state.requestCount  || this.state.responseCount === 0}
+            onClick={() =>{
+              this.setState({
+                requestOffset: this.state.requestOffset + this.state.requestCount,
+              }, () => {
+                this.searchByJamo();
+              });
+            }}
+          >
+            ▶
+          </button>
+        </label>
         <br/>
         <Sentences typedSentences={this.state.typedSentences} />
-        {/* 디버그 정보
         <label>
           <input
             type="checkbox"
@@ -645,7 +685,7 @@ class App extends Component {
             <div className="status">State: {this.state.state}</div>
             <div className="debug">TypedJamos: {this.typedJamos()}</div>
           </React.Fragment>
-        ) : null} */}
+        ) : null} 
       </div>
     );
   }

@@ -181,7 +181,7 @@ class App extends Component {
 
     if (!searchParam || searchParam.length < 2 || (searchParam.length === 2 && this.typedJamos()[1] === "`")) return;
     
-    const serverIp = 'localhost';//'54.180.81.102';
+    const serverIp = '54.180.81.102'; //'localhost';
 
     const url = 
       this.state.intonations.length === 0
@@ -203,8 +203,8 @@ class App extends Component {
 
     if (!searchParam || searchParam.length <= 1) return;
 
-    const serverIp = 'localhost';//'54.180.81.102';
-
+    const serverIp = '54.180.81.102'; //'localhost';
+    
     const url = `http://${serverIp}:50000/search/hunmin/${searchParam}`;
         
     axios.get(url).then(response => {

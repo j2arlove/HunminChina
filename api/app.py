@@ -25,14 +25,14 @@ def translate_rows(rows):
     return [{
         'id': r[0],
         'hunmin': r[1],
-    #    'hunminWithoutSpace': r[2],
-    #    'jamo': r[3],
+    #   'hunminWithoutSpace': r[2],
+    #   'jamo': r[3],
 	#	'chosung': r[4],
         'simplified': r[5],
         'traditional': r[6],
         'intonation': r[7],
         'priority': r[8],
-    #    'user': r[9],
+    #   'user': r[9],
     } for r in rows]
 
 @app.route('/search/jamo/<string:text>/<int:offset>/<int:count>')
@@ -66,6 +66,10 @@ def searchJamoIntonation(text, intonation, offset, count):
 @app.route('/search/hunmin/<string:text>')
 def searchHunmin(text):
     cur = get_db().cursor()
+    count_num = [row for row in cur.execute('SELECT COUNT(*) FROM hunmin WHERE jamo LIKE "{0}"'.format(text))][0][0]
     rows = [row for row in cur.execute('SELECT * FROM hunmin WHERE jamo LIKE "{0}" ORDER BY priority asc'.format(text))]
     
-    return jsonify(translate_rows(rows))
+    return jsonify({
+        'candidates': translate_rows(rows),
+        'count': count_num,
+    })

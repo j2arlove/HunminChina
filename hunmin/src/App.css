@@ -19,6 +19,9 @@ div.title {
   margin-top: 2rem;
 }
 
+button.left {
+  margin-left: 1rem;
+}
 .typed-characters {
   display: flex;
   flex-wrap: wrap;

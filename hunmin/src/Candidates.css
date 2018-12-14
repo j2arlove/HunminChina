@@ -15,9 +15,6 @@
   background-color: lightgray;
 }
 
-.candidate__hunmin {
-}
-
 .candidate__chinese {
   margin-left: 0.25rem;
   font-weight: bold;
@@ -41,4 +38,9 @@
 
 .intonation--4 {
   color: red;
+}
+
+div.option {
+  margin-left: 0.8rem;
+  line-height: 2.5rem;
 }

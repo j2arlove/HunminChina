@@ -4,8 +4,8 @@ import "./Sentences.css";
 
 class Sentences extends Component {
   render() {
-    const sentences = this.props.typedSentences.map(sentence => {
-      return <div className="sentence bubble">{sentence}</div>;
+    const sentences = this.props.typedSentences.map((sentence, i) => {
+      return <div className="sentence bubble" key={`${sentence}-${i}`}>{sentence}</div>;
     });
 
     return (

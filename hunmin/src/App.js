@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import axios from "axios";
-
 import "./App.css";
 import Candidates from "./Candidates";
 import Sentences from "./Sentences";
@@ -20,8 +19,7 @@ class App extends Component {
     typedCharacters: [], // 지금까지 입력한 문자들
     typingSentence: "",
     typedSentences: [],
-    currentTypingCharacters: {
-      // 현재 입력중인 문자
+    currentTypingCharacters: {// 현재 입력중인 문자
       intonation: 0, // 성조
       keys: [], // 글쇠
       states: [], // state 히스토리
@@ -65,8 +63,39 @@ class App extends Component {
       this.backspace();
     } else if (pressedKey === "enter") {
       this.enter();
-    } else if (pressedKey === "space bar") {
+    } else if (pressedKey === "ctrl") {
       this.searchByHunmin();
+    } else if (this.includes(["left arrow", "down arrow"], pressedKey)) {
+      this.setState({
+        requestOffset: this.state.requestOffset >= this.state.requestCount ? this.state.requestOffset - this.state.requestCount : 0,
+      }, () => {
+        this.searchByJamo();
+      });
+    } else if (this.includes(["right arrow", "up arrow"], pressedKey)) {
+      if (this.state.responseCount-this.state.requestOffset>10) {
+        this.setState({
+          requestOffset: this.state.requestOffset + this.state.requestCount,
+        }, () => {
+          this.searchByJamo();
+        }); 
+      }
+    } else if (pressedKey === "space bar") {
+      this.finishCharacter();
+      const untranslatedHangul = [
+        ...this.state.typedCharacters,
+        this.state.currentTypingCharacters
+      ].map(character => this.translateToUnicode(character.combinedHangul)).join('');
+
+      this.setState({
+        typingSentence: this.state.typingSentence + untranslatedHangul + ' ',
+        currentTypingCharacters: {
+          intonation: 0, // 성조
+          keys: [], // 글쇠
+          states: [], // state 히스토리
+          combinedHangul: ""
+        },
+        typedCharacters: [],    
+      });
     } else if (this.includes(["0", "1", "2", "3", "4"], pressedKey)) {
       const intonations = [...this.state.intonations, pressedKey];
       this.setState({ intonations: intonations }, () => {
@@ -150,10 +179,9 @@ class App extends Component {
   searchByJamo = () => {
     const searchParam = this.typedJamos().join("");
 
-    if (!searchParam || searchParam.length <= 1) return;
-
-    const serverIp = '54.180.81.102';
-    //const localIp = 'localhost';
+    if (!searchParam || searchParam.length < 2 || (searchParam.length === 2 && this.typedJamos()[1] === "`")) return;
+    
+    const serverIp = 'localhost';//'54.180.81.102';
 
     const url = 
       this.state.intonations.length === 0
@@ -175,8 +203,7 @@ class App extends Component {
 
     if (!searchParam || searchParam.length <= 1) return;
 
-    const serverIp = '54.180.81.102';
-    //const localIp = 'localhost';
+    const serverIp = 'localhost';//'54.180.81.102';
 
     const url = `http://${serverIp}:50000/search/hunmin/${searchParam}`;
         
@@ -202,10 +229,12 @@ class App extends Component {
 
   backspace = () => {
     if (this.state.currentTypingCharacters.keys.length === 0) {
-      this.setState({
-        jamoResponse: []
-      });
       // 현재 입력중인 글자가 없을때
+      this.setState({
+        jamoResponse: [],
+        responseCount: 0,      
+      });
+      
       if (this.state.typedCharacters.length > 0) {
         // 이미 입력된 글자가 있을때
         const typedCharacters = [...this.state.typedCharacters];
@@ -240,6 +269,11 @@ class App extends Component {
   };
 
   enter = () => {
+    const untranslatedHangul = [
+      ...this.state.typedCharacters,
+      this.state.currentTypingCharacters
+    ].map(character => this.translateToUnicode(character.combinedHangul)).join('');
+
     this.setState({
       isControlPressed: false,
       isShiftPressed: false,
@@ -256,7 +290,7 @@ class App extends Component {
       jamoResponse: [],
       responseCount: 0,
       intonations: [],
-      typedSentences: [...this.state.typedSentences, this.state.typingSentence],
+      typedSentences: [...this.state.typedSentences, this.state.typingSentence + untranslatedHangul],
       typingSentence: ""
     });
   };
@@ -629,12 +663,17 @@ class App extends Component {
           </button>
         </div>
           */}
+
+        {this.state.responseCount > 0 ?(  
         <Candidates
           candidates={this.state.jamoResponse}
           finishSearch={this.finishSearch}
-        />
+        />) : null}
+
+        {this.state.responseCount > 0 ?(
         <label>
-          <button
+          <button 
+            className="left"
             disabled={this.state.requestOffset === 0 || this.state.responseCount === 0}
             onClick={() => {
               this.setState({
@@ -645,15 +684,13 @@ class App extends Component {
             }}>
             ◀
           </button>
-          {this.state.responseCount > 0 ? (
             <React.Fragment>
               &nbsp;
               {Math.floor(this.state.requestOffset / this.state.requestCount) + 1}
               /
               {Math.ceil(this.state.responseCount / this.state.requestCount)}
               &nbsp;
-            </React.Fragment>
-          ) : null}          
+            </React.Fragment>   
           <button
             disabled={this.state.requestOffset >= this.state.responseCount - this.state.requestCount  || this.state.responseCount === 0}
             onClick={() =>{
@@ -665,10 +702,12 @@ class App extends Component {
             }}
           >
             ▶
-          </button>
-        </label>
-        <br/>
+          </button><br/><br/>
+        </label>) : null}
+
         <Sentences typedSentences={this.state.typedSentences} />
+
+        
         <label>
           <input
             type="checkbox"
@@ -686,6 +725,7 @@ class App extends Component {
             <div className="debug">TypedJamos: {this.typedJamos()}</div>
           </React.Fragment>
         ) : null} 
+
       </div>
     );
   }

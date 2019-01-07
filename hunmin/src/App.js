@@ -693,26 +693,6 @@ class App extends Component {
         </label>) : null}
 
         <Sentences typedSentences={this.state.typedSentences} />
-
-        
-        <label>
-          <input
-            type="checkbox"
-            checked={this.state.debug}
-            value={this.state.debug}
-            onChange={v => {
-              this.setState({ debug: v.target.checked });
-            }}
-          />
-          debug info
-        </label>
-        {this.state.debug ? (
-          <React.Fragment>
-            <div className="status">State: {this.state.state}</div>
-            <div className="debug">TypedJamos: {this.typedJamos()}</div>
-          </React.Fragment>
-        ) : null} 
-
       </div>
     );
   }

@@ -25,13 +25,12 @@ def translate_rows(rows):
     return [{
         'id': r[0],
         'hunmin': r[1],
-    #   'hunminWithoutSpace': r[2],
-    #   'jamo': r[3],
-	#	'chosung': r[4],
-        'simplified': r[5],
-        'traditional': r[6],
-        'intonation': r[7],
-        'priority': r[8],
+        'jamo': r[2],
+		'chosung': r[3],
+        'simplified': r[4],
+        'traditional': r[5],
+        'intonation': r[6],
+        'priority': r[7]
     #   'user': r[9],
     } for r in rows]
 

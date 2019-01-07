@@ -102,7 +102,7 @@ class App extends Component {
         this.searchByJamo();
       });
     } else if (pressedKey === "esc") {
-      this.finishCharacter(); //화살표키 살릴 방법 있나요??
+      this.finishCharacter(); 
     } else if (pressedKey !== null) {
       this.state.states[this.state.state](pressedKey);
     }
@@ -221,7 +221,7 @@ class App extends Component {
     currentTypingCharacters.keys.push(key);
     currentTypingCharacters.states.push(this.state.state);
 
-    this.setState({ currentTypingCharacters }, () => {
+    this.setState({ currentTypingCharacters, requestOffset: 0 }, () => {
       this.searchByJamo();
       this.combineHangul(this.state.currentTypingCharacters);
     });
@@ -232,9 +232,9 @@ class App extends Component {
       // 현재 입력중인 글자가 없을때
       this.setState({
         jamoResponse: [],
-        responseCount: 0,      
+        responseCount: 0,   
+        requestOffset: 0   
       });
-      
       if (this.state.typedCharacters.length > 0) {
         // 이미 입력된 글자가 있을때
         const typedCharacters = [...this.state.typedCharacters];
@@ -258,7 +258,8 @@ class App extends Component {
         {
           currentTypingCharacters,
           intonations: [], //성조 입력 지움
-          state: prevState
+          state: prevState,
+          requestOffset: 0
         },
         () => {
           this.searchByJamo();
@@ -320,7 +321,7 @@ class App extends Component {
         intonation: 0,
         keys: [],
         states: [],
-        combinedHangul: ""
+        combinedHangul: "",
       }
     });
   };
@@ -649,20 +650,6 @@ class App extends Component {
           {typedCharacters}
           <div className="typing-character">{currentCharacter}</div>
         </div>
-        {/*
-        <div>
-          성조: {this.state.intonations.join(", ")}
-          <button
-            onClick={() => {
-              this.setState({ intonations: [] }, () => {
-                this.searchByJamo();
-              });
-            }}
-          >
-            성조 지우기
-          </button>
-        </div>
-          */}
 
         {this.state.responseCount > 0 ?(  
         <Candidates

@@ -19,7 +19,8 @@ class App extends Component {
     typedCharacters: [], // 지금까지 입력한 문자들
     typingSentence: "",
     typedSentences: [],
-    currentTypingCharacters: {// 현재 입력중인 문자
+    currentTypingCharacters: {
+      // 현재 입력중인 문자
       intonation: 0, // 성조
       keys: [], // 글쇠
       states: [], // state 히스토리
@@ -32,7 +33,7 @@ class App extends Component {
     intonations: [],
     debug: false
   };
- 
+
   componentDidMount() {
     document.onkeydown = this.onKeyDown;
     document.onkeyup = this.onKeyUp;
@@ -62,39 +63,70 @@ class App extends Component {
     } else if (pressedKey === "backspace") {
       this.backspace();
     } else if (pressedKey === "enter") {
-      this.enter();
+      if (this.state.jamoResponse.length === 0) {
+        this.enter();
+      } else {
+        this.finishSearch(
+          this.state.jamoResponse[this.state.selectedWordIndex].simplified
+        );
+      }
     } else if (pressedKey === "ctrl") {
       this.searchByHunmin();
-    } else if (this.includes(["left arrow", "down arrow"], pressedKey)) {
-      this.setState({
-        requestOffset: this.state.requestOffset >= this.state.requestCount ? this.state.requestOffset - this.state.requestCount : 0,
-      }, () => {
-        this.searchByJamo();
-      });
-    } else if (this.includes(["right arrow", "up arrow"], pressedKey)) {
-      if (this.state.responseCount-this.state.requestOffset>10) {
-        this.setState({
-          requestOffset: this.state.requestOffset + this.state.requestCount,
-        }, () => {
+    } else if (this.includes(["up arrow"], pressedKey)) {
+      this.setState(
+        {
+          requestOffset:
+            this.state.requestOffset >= this.state.requestCount
+              ? this.state.requestOffset - this.state.requestCount
+              : 0
+        },
+        () => {
           this.searchByJamo();
-        }); 
+        }
+      );
+    } else if (this.includes(["down arrow"], pressedKey)) {
+      if (this.state.responseCount - this.state.requestOffset > 10) {
+        this.setState(
+          {
+            requestOffset: this.state.requestOffset + this.state.requestCount
+          },
+          () => {
+            this.searchByJamo();
+          }
+        );
       }
+    } else if (this.includes(["left arrow"], pressedKey)) {
+      this.setState({
+        selectedWordIndex:
+          this.state.selectedWordIndex > 0
+            ? this.state.selectedWordIndex - 1
+            : 0
+      });
+    } else if (this.includes(["right arrow"], pressedKey)) {
+      this.setState({
+        selectedWordIndex:
+          this.state.selectedWordIndex < this.state.jamoResponse.length - 1
+            ? this.state.selectedWordIndex + 1
+            : this.state.jamoResponse.length - 1
+      });
     } else if (pressedKey === "space bar") {
       this.finishCharacter();
       const untranslatedHangul = [
         ...this.state.typedCharacters,
         this.state.currentTypingCharacters
-      ].map(character => this.translateToUnicode(character.combinedHangul)).join('');
+      ]
+        .map(character => this.translateToUnicode(character.combinedHangul))
+        .join("");
 
       this.setState({
-        typingSentence: this.state.typingSentence + untranslatedHangul + ' ',
+        typingSentence: this.state.typingSentence + untranslatedHangul + " ",
         currentTypingCharacters: {
           intonation: 0, // 성조
           keys: [], // 글쇠
           states: [], // state 히스토리
           combinedHangul: ""
         },
-        typedCharacters: [],    
+        typedCharacters: []
       });
     } else if (this.includes(["0", "1", "2", "3", "4"], pressedKey)) {
       const intonations = [...this.state.intonations, pressedKey];
@@ -102,7 +134,7 @@ class App extends Component {
         this.searchByJamo();
       });
     } else if (pressedKey === "esc") {
-      this.finishCharacter(); 
+      this.finishCharacter();
     } else if (pressedKey !== null) {
       this.state.states[this.state.state](pressedKey);
     }
@@ -179,21 +211,29 @@ class App extends Component {
   searchByJamo = () => {
     const searchParam = this.typedJamos().join("");
 
-    if (!searchParam || searchParam.length < 2 || (searchParam.length === 2 && this.typedJamos()[1] === "`")) return;
-    
-    const serverIp = '54.180.81.102'; //'localhost';
+    if (
+      !searchParam ||
+      searchParam.length < 2 ||
+      (searchParam.length === 2 && this.typedJamos()[1] === "`")
+    )
+      return;
 
-    const url = 
+    const serverIp = "54.180.81.102"; //'localhost';
+
+    const url =
       this.state.intonations.length === 0
-        ? `http://${serverIp}:50000/search/jamo/${searchParam}/${this.state.requestOffset}/${this.state.requestCount}`
+        ? `http://${serverIp}:50000/search/jamo/${searchParam}/${
+            this.state.requestOffset
+          }/${this.state.requestCount}`
         : `http://${serverIp}:50000/search/jamo_intonation/${searchParam}/${this.state.intonations.join(
             ","
           )}/${this.state.requestOffset}/${this.state.requestCount}`;
-    
+
     axios.get(url).then(response => {
       this.setState({
+        selectedWordIndex: 0,
         jamoResponse: response.data.candidates,
-        responseCount: response.data.count,
+        responseCount: response.data.count
       });
     });
   };
@@ -203,13 +243,14 @@ class App extends Component {
 
     if (!searchParam || searchParam.length <= 1) return;
 
-    const serverIp = '54.180.81.102'; //'localhost';
-    
+    const serverIp = "54.180.81.102"; //'localhost';
+
     const url = `http://${serverIp}:50000/search/hunmin/${searchParam}`;
-        
+
     axios.get(url).then(response => {
       console.log(response.data);
       this.setState({
+        selectedWordIndex: 0,
         jamoResponse: response.data.candidates
       });
     });
@@ -232,8 +273,8 @@ class App extends Component {
       // 현재 입력중인 글자가 없을때
       this.setState({
         jamoResponse: [],
-        responseCount: 0,   
-        requestOffset: 0   
+        responseCount: 0,
+        requestOffset: 0
       });
       if (this.state.typedCharacters.length > 0) {
         // 이미 입력된 글자가 있을때
@@ -273,7 +314,9 @@ class App extends Component {
     const untranslatedHangul = [
       ...this.state.typedCharacters,
       this.state.currentTypingCharacters
-    ].map(character => this.translateToUnicode(character.combinedHangul)).join('');
+    ]
+      .map(character => this.translateToUnicode(character.combinedHangul))
+      .join("");
 
     this.setState({
       isControlPressed: false,
@@ -291,7 +334,10 @@ class App extends Component {
       jamoResponse: [],
       responseCount: 0,
       intonations: [],
-      typedSentences: [...this.state.typedSentences, this.state.typingSentence + untranslatedHangul],
+      typedSentences: [
+        ...this.state.typedSentences,
+        this.state.typingSentence + untranslatedHangul
+      ],
       typingSentence: ""
     });
   };
@@ -321,7 +367,7 @@ class App extends Component {
         intonation: 0,
         keys: [],
         states: [],
-        combinedHangul: "",
+        combinedHangul: ""
       }
     });
   };
@@ -644,55 +690,78 @@ class App extends Component {
 
     return (
       <div className="App">
-        <div className="title">중국어 입력을 위한 훈민병음 입력기</div> 
+        <div className="title">중국어 입력을 위한 훈민병음 입력기</div>
         <div className="typed-characters">
           {this.state.typingSentence}
           {typedCharacters}
           <div className="typing-character">{currentCharacter}</div>
         </div>
 
-        {this.state.responseCount > 0 ?(  
-        <Candidates
-          candidates={this.state.jamoResponse}
-          finishSearch={this.finishSearch}
-        />) : null}
+        {this.state.responseCount > 0 ? (
+          <Candidates
+            selectedWordIndex={this.state.selectedWordIndex}
+            candidates={this.state.jamoResponse}
+            finishSearch={this.finishSearch}
+          />
+        ) : null}
 
-        {this.state.responseCount > 0 ?(
-        <label>
-          <button 
-            className="left"
-            disabled={this.state.requestOffset === 0 || this.state.responseCount === 0}
-            onClick={() => {
-              this.setState({
-                requestOffset: this.state.requestOffset >= this.state.requestCount ? this.state.requestOffset - this.state.requestCount : 0,
-              }, () => {
-                this.searchByJamo();
-              });
-            }}>
-            ◀
-          </button>
+        {this.state.responseCount > 0 ? (
+          <label>
+            <button
+              className="left"
+              disabled={
+                this.state.requestOffset === 0 || this.state.responseCount === 0
+              }
+              onClick={() => {
+                this.setState(
+                  {
+                    requestOffset:
+                      this.state.requestOffset >= this.state.requestCount
+                        ? this.state.requestOffset - this.state.requestCount
+                        : 0
+                  },
+                  () => {
+                    this.searchByJamo();
+                  }
+                );
+              }}
+            >
+              ▲
+            </button>
             <React.Fragment>
               &nbsp;
-              {Math.floor(this.state.requestOffset / this.state.requestCount) + 1}
-              /
-              {Math.ceil(this.state.responseCount / this.state.requestCount)}
+              {Math.floor(this.state.requestOffset / this.state.requestCount) +
+                1}
+              /{Math.ceil(this.state.responseCount / this.state.requestCount)}
               &nbsp;
-            </React.Fragment>   
-          <button
-            disabled={this.state.requestOffset >= this.state.responseCount - this.state.requestCount  || this.state.responseCount === 0}
-            onClick={() =>{
-              this.setState({
-                requestOffset: this.state.requestOffset + this.state.requestCount,
-              }, () => {
-                this.searchByJamo();
-              });
-            }}
-          >
-            ▶
-          </button><br/><br/>
-        </label>) : null}
+            </React.Fragment>
+            <button
+              disabled={
+                this.state.requestOffset >=
+                  this.state.responseCount - this.state.requestCount ||
+                this.state.responseCount === 0
+              }
+              onClick={() => {
+                this.setState(
+                  {
+                    requestOffset:
+                      this.state.requestOffset + this.state.requestCount
+                  },
+                  () => {
+                    this.searchByJamo();
+                  }
+                );
+              }}
+            >
+              ▼
+            </button>
+            <br />
+            <br />
+          </label>
+        ) : null}
 
         <Sentences typedSentences={this.state.typedSentences} />
+        
       </div>
     );
   }

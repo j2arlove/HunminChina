@@ -10,10 +10,7 @@ class Candidates extends Component {
   render() {
     const candidates = this.props.candidates.map((candidate, index) => {
 
-      const chinese =
-        this.state.renderMode === "simplified"
-          ? candidate.simplified
-          : candidate.traditional;
+      const chinese = candidate.simplified;
 
       const highlightedChinese = candidate.intonation
         .split(",")
@@ -31,7 +28,7 @@ class Candidates extends Component {
       return (
         <div
           key={`${index}-${candidate.id}`}
-          className="candidate"
+          className={`candidate ${this.props.selectedWordIndex === index ? 'candidate--selected' : 'candidate--not-selected'}`}
           onClick={() => {
             this.props.finishSearch(chinese);
           }}
@@ -41,33 +38,6 @@ class Candidates extends Component {
         </div>
       );
     });
-
-    const renderModeSelector = (
-      <div className="option">
-        <label>
-          <input
-            type="radio"
-            value="simplified"
-            checked={this.state.renderMode === "simplified"}
-            onChange={() => {
-              this.setState({ renderMode: "simplified" });
-            }}
-          />
-          Simplified
-        </label>&nbsp;
-        <label>
-          <input
-            type="radio"
-            value="traditional"
-            checked={this.state.renderMode === "traditional"}
-            onChange={() => {
-              this.setState({ renderMode: "traditional" });
-            }}
-          />
-          Traditional
-        </label>
-      </div>
-    );
 
     return (
       <div className="candidates-wrapper">

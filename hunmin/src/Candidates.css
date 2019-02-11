@@ -11,6 +11,10 @@
   cursor: pointer;
 }
 
+.candidate--selected {
+  background-color: #DEDEDE;
+}
+
 .candidate:hover {
   background-color: lightgray;
 }
